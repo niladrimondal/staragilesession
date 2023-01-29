@@ -1,0 +1,24 @@
+rwx rwx rwx
+421 421 421
+
+4    0   0
+
+7    7   7
+4    4   4
+210  210 210
+
+
+++++++++++++++++++++++++++
+#Install Net-tools to run if config
+apt install net-tools
+
+ifconfig
+
+#run trace route 
+apt update -y
+apt install inetutils-traceroute
+
+traceroute  www.google.com
++++++++++++++++++++++++++++++++++++++++++++
+
+

@@ -1,0 +1,45 @@
+create folder
+
+#intialize the git
+
+git init
+
+#Add the Staging
+git add .
+
+#check the status
+git status
+
+#remove the file from stage location
+git rm --cached file2 
+
+#commit to local repo
+git commit -m ""
+
+#one time setup after git installation
+git config --global user.email "niladrisankarmondal.mondal@gmail.com"
+
+git config --global user.name "NiladriSMondal"
+
+++++++++++++++++++++++++++++++
+
+
+#create git hub account
+
+#add the origin in the local repository
+
+git remote add origin <<git repo links>>
+
+#push your local repo changes to remote repo
+git push -u origin master
+++++++++++++++++++++++++++
+
+add .gitignorefile
+
+add some file pattern to ignore the same 
+
+++++++++++++++++++++
+#check the commit log
+git log --oneline
+#check the commit log graph mode
+git log --oneline --graph

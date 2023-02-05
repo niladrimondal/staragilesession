@@ -1,0 +1,10 @@
+git pull origin <branchname>
+
+git pull
+
+git rebase <branchname>
+
+git revert <commitid>
+
+git reset --soft/--mixed/--hard <commitid>
+

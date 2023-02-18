@@ -1,0 +1,100 @@
+#Setup Ant environment and Build the same with freestyle project
+clean compile test package war
+
+
+
+#Create a pipeline script
+pipeline {
+    agent any
+
+    tools {
+        // Install the Maven version configured as "mavensetup" and add it to the path. we have done same global tool configuration
+        maven "mavensetup"
+    }
+
+    stages {
+        stage('Checkout My github Maven repo') {
+            steps {
+                git 'https://github.com/niladrimondal/DevOpsClassCodes.git'
+            }
+        }
+        stage('Compile the source code') {
+            steps {
+                bat 'mvn compile'
+            }
+        }
+        stage('Run unit test case') {
+            steps {
+                bat 'mvn test'
+            }
+        }
+        stage('Run the Code quality check') {
+            steps {
+                bat 'mvn pmd:pmd'
+            }
+        }
+        stage('Package the code as a war file') {
+            steps {
+                bat 'mvn package'
+            }
+        }
+    }
+}
+
+
+++++++++++++++++++++++++++++++++++++++
+#Install Jenkins on top of Ubuntu VM
+sudo apt-get update
+#Install Java
+sudo apt install default-jdk
+
+#output 
+ubuntu@ip-172-31-58-71:~$ java --version
+openjdk 11.0.17 2022-10-18
+OpenJDK Runtime Environment (build 11.0.17+8-post-Ubuntu-1ubuntu222.04)
+OpenJDK 64-Bit Server VM (build 11.0.17+8-post-Ubuntu-1ubuntu222.04, mixed mode, sharing)
+ubuntu@ip-172-31-58-71:~$
+
+#download and install Jenkis
+wget -q -O - https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add
+
+sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list'
+
+#run update again 
+sudo apt-get update
+
+#install Jenkins
+sudo apt-get install jenkins
+
+#check the jenkins service status
+sudo service jenkins status
+
+#to start jenkis
+sudo systemctl start jenkins
+sudo systemctl status jenkins
+
+#verify the jenkins url
+curl localhost:8080
+
+#to access the jenkins url outside you need to open the port 8080 inboud rule
+http://<publicip>:8080
+http://35.175.130.70:8080
+
+#get your initial admin password
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+#create another slave node
+nohup java -jar agent.jar -jnlpUrl http://100.25.13.102:8080/computer/linux/jenkins-agent.jnlp -secret 53f46b07006820f32f1effabc88c924dea577fc4d77a0428c98fe4cb1dba3fd3 -workDir "/home/ubuntu/secondarynode" &
+
+
+#Install jenkins with Userdat 
+#!/bin/bash
+sudo apt update 
+sudo apt install openjdk-11-jdk -y
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee \
+  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt-get update
+sudo apt-get install jenkins -y

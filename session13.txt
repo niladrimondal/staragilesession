@@ -1,0 +1,144 @@
+Types of Image:
+1. Base image : which start with From scratch
+
+# syntax=docker/dockerfile:1
+FROM scratch
+ADD hello /
+CMD ["/hello"]
+
+2. Parent Image: which is going to refer another image
+
+# syntax=docker/dockerfile:1
+FROM node:18-alpine
+WORKDIR /app
+COPY . .
+RUN yarn install --production
+CMD ["node", "src/index.js"]
+EXPOSE 3000
+
++++++++++++
+
+# To create any custom image you need to maintain a Dockerfile
+# You are going to define all the instruction what your image is going to do
+
+Dockerfile Format
+The Dockerfile is a raw text document. The following are some popular instructions in a Dockerfile.
+FROM – This instruction defines the parent image for subsequent instructions. FROM clause must be the first entry in a Dockerfile. It can come after a comment or parse directive or ARG used in the FROM directive.
+
+ARG – It defines variables used during the build once you run Docker build command on the file.
+AD
+CMD – This sets the command executed upon container creation. Docker only allows one CMD instruction per file. When you have more than one defined, it runs the last command.
+
+LABEL – The label instruction defines metadata information for the image. You can add as many labels as you see fit in the form of key-value pairs. For example, image metadata could include the version number, author information, description, etc.
+
+RUN – Sets the instructions to be executed during the image build.
+
+USER – This instruction sets the username or UID of the user when running the image or instructions in a Dockerfile such as CMD, RUN, and ENTRYPOINT.
+AD
+ENTRYPOINT – It defines the commands Docker executes upon container creation. Options are overridable in the command line during container startup.
+
+ADD – This instruction copies files and directories from the specified source to a specified destination. The source can be a local path or an external URL. If the files are archives, Docker automatically unpacks them into the image.
+
+VOLUME – The volume instructions allow you to create mount points from host machine directories or other containers.
+
+EXPOSE – This instruction tells Docker which port to listen on during runtime.
+
+AD
+ENV – It sets environment variables.
+
+WORKDIR – sets the current working directory. If the directory specified does not exist, Docker will automatically create one.
+
+The above are some standard instructions you can use in a Dockerfile.
+
+#Lets create a Docker file for Custom Nginx Image:
+#Dockerfile
+
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install -y nginx
+COPY index-custom.html /var/www /html/index.html
+EXPOSE 80
+CMD nginx -g 'daemon off;'
+
++++++++++++++++
+root@ip-172-31-12-78:~/customdockerimage# ls
+Dockerfile  index-custom.html
+root@ip-172-31-12-78:~/customdockerimage# cat Dockerfile
+FROM ubuntu
+RUN apt-get update
+RUN apt-get install -y nginx
+COPY index-custom.html /var/www/html/index.html
+EXPOSE 80
+CMD nginx -g 'daemon off;'
+root@ip-172-31-12-78:~/customdockerimage# cat index-custom.html
+This My nginx page from my Custome image
+root@ip-172-31-12-78:~/customdockerimage#
+
+++++++++++++++++++++++++
+#Build the docker image
+docker build -t <imagename>:<tag-version> <pathof thedockerfile>
+
+docker build -t niladringinx:1.0 . 
+
+#docker run
+docker run -dP niladringinx:1.0
+++++++++++++++++++++++++++++
+Docker compose:
+apt update
+apt install docker.io
+apt install docker-compose
+
+docker-compose build
+docker-compose up
+
+++++++++++++++++++++++++++++
+vi docker-compose.yml
+
+version: '2'
+services:
+  compose-test:
+    image: centos
+    links:
+      - compose-db
+    command: /usr/bin/curl compose-db:6379
+  compose-db:
+    image: redis
+    expose:
+      - "6379"
+++++++++++++++++++++++++++++++++
+sudo docker pull ubuntu
+
+++++++++++++++++++++++++
+docker tag 58db3edaf2be niladrimondaldcr/niladriubuntu:1.0
+
+authenticate 
+docker login user name password
+
+docker push niladrimondaldcr/niladriubuntu:1.0
+
++++++++++++++++++++++++++
+work with private docker registry
+docker pull registry:2
+docker images
+
+sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
+docker ps 
+
+now private registry created 
+we need to tag the images with the private registry
+
+docker tag IMAGE_ID YOUR_REGISTRY/myimage:latest
+
+docker tag 58db3edaf2be localhost:5000/niladriubuntu:1.0
+
+docker images
+
+docker push localhost:5000/niladriubuntu:1.0
+
+#to see the images pushed
+browse: localhost:5000/v2/_catalog
+
+cleanup:
+sudo docker rm -f $(docker ps -aq) 
+sudo docker rmi $(docker images -q)

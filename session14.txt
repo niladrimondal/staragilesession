@@ -1,0 +1,535 @@
+++++++++++++++++++++++++++++++++++++++
+https://computingforgeeks.com/how-to-install-minikube-on-ubuntu-debian-linux/
+###Install kubernetes with Minikube
+Step 1: Update system
+sudo apt update
+sudo apt upgrade
+
+#reboot the instance
+[ -f /var/run/reboot-required ] && sudo reboot -f
+
+####Download minikube on Ubuntu 22.04|20.04|18.04
+wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+chmod +x minikube-linux-amd64
+sudo mv minikube-linux-amd64 /usr/local/bin/minikube
+
+minikube version
+
+
+###Install kubectl on Ubuntu
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+sudo mv ./kubectl /usr/local/bin/kubectl
+kubectl version -o json  --client
+
+####Install docker
+sudo apt-get update
+ 
+#Use the following command to install packages to allow the apt to use a repository over HTTPS
+sudo apt-get install \
+apt-transport-https \
+ca-certificates \
+curl \
+gnupg \
+lsb-release
+
+
+#Use the following curl command to add Docker’s official GPG key:
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+#Use the following command to set up a stable repository:
+echo \
+"deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+
+#Install now
+sudo apt update
+sudo apt-get install docker-ce
+docker  --version
+
+
++++++++++++
+#####To create the docker group and add your user:(optional if group is already present)
+###Create the docker group.
+sudo groupadd docker
+
+###Add your user to the docker group.
+sudo usermod -aG docker $USER
+
+####Log out and log back in so that your group membership is re-evaluated.
+###If you’re running Linux in a virtual machine, it may be necessary to restart the virtual machine for changes to take effect.
+
+####You can also run the following command to activate the changes to groups:
+newgrp docker
+
+###now you can run docker without sudo 
+################Starting minikube on Ubuntu 22.04|20.04|18.04
+
+ubuntu@ip-172-31-84-235:~$ minikube start
+* minikube v1.29.0 on Ubuntu 22.04 (xen/amd64)
+* Automatically selected the docker driver. Other choices: ssh, none
+* Using Docker driver with root privileges
+* Starting control plane node minikube in cluster minikube
+* Pulling base image ...
+* Downloading Kubernetes v1.26.1 preload ...
+    > preloaded-images-k8s-v18-v1...:  397.05 MiB / 397.05 MiB  100.00% 54.24 M
+    > gcr.io/k8s-minikube/kicbase...:  407.18 MiB / 407.19 MiB  100.00% 47.27 M
+* Creating docker container (CPUs=2, Memory=2200MB) ...
+* Preparing Kubernetes v1.26.1 on Docker 20.10.23 ...
+  - Generating certificates and keys ...
+  - Booting up control plane ...
+  - Configuring RBAC rules ...
+* Configuring bridge CNI (Container Networking Interface) ...
+  - Using image gcr.io/k8s-minikube/storage-provisioner:v5
+* Verifying Kubernetes components...
+* Enabled addons: default-storageclass, storage-provisioner
+* Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
+ubuntu@ip-172-31-84-235:~$
+
+
+####Minikube Basic operations
+kubectl cluster-info
+
+ubuntu@ip-172-31-84-235:~$ kubectl cluster-info
+Kubernetes control plane is running at https://192.168.49.2:8443
+CoreDNS is running at https://192.168.49.2:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+ubuntu@ip-172-31-84-235:~$
+
+kubectl config view
+ubuntu@ip-172-31-84-235:~$ kubectl cluster-info
+Kubernetes control plane is running at https://192.168.49.2:8443
+CoreDNS is running at https://192.168.49.2:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+ubuntu@ip-172-31-84-235:~$ kubectl config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /home/ubuntu/.minikube/ca.crt
+    extensions:
+    - extension:
+        last-update: Mon, 27 Feb 2023 05:15:43 UTC
+        provider: minikube.sigs.k8s.io
+        version: v1.29.0
+      name: cluster_info
+    server: https://192.168.49.2:8443
+  name: minikube
+contexts:
+- context:
+    cluster: minikube
+    extensions:
+    - extension:
+        last-update: Mon, 27 Feb 2023 05:15:43 UTC
+        provider: minikube.sigs.k8s.io
+        version: v1.29.0
+      name: context_info
+    namespace: default
+    user: minikube
+  name: minikube
+current-context: minikube
+kind: Config
+preferences: {}
+users:
+- name: minikube
+  user:
+    client-certificate: /home/ubuntu/.minikube/profiles/minikube/client.crt
+    client-key: /home/ubuntu/.minikube/profiles/minikube/client.key
+ubuntu@ip-172-31-84-235:~$
+
+##########To check running nodes:
+
+#########
+#######get the Status of the node
+ubuntu@ip-172-31-84-235:~$ kubectl get nodes
+NAME       STATUS   ROLES           AGE     VERSION
+minikube   Ready    control-plane   2m19s   v1.26.1
+ubuntu@ip-172-31-84-235:~$
+
+#deploy pods
+#tocheck the version
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl explain pods
+KIND:     Pod
+VERSION:  v1
+
+#Now I am going to create my pod
+nano sample.yml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-container
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: nginx
+    image: nginx:1.10-alpine
+	ports:
+	- containerPort: 80
+  - name: alpine
+    image: alpine:3.5
+	command: ["watch","wget","-qO-","localhost"]
+
+#Now I am going to create a pods with above sample.yml
+
+kubectl create -f sample.yml
+or 
+kubectl apply -f sample.yml
+
+###############output
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl apply -f sample.yml
+pod/multi-container created
+
+
+ubuntu@ip-172-31-84-235:~$ kubectl get pods
+NAME              READY   STATUS    RESTARTS   AGE
+multi-container   2/2     Running   0          17s
+
+
+
+#create a single container pod
+kubectl run tomcat --image=tomcat:8.0
+#output
+$ kubectl run tomcat --image=tomcat:8.0
+pod/tomcat created
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl get pods
+NAME              READY   STATUS    RESTARTS   AGE
+multi-container   2/2     Running   0          17m
+tomcat            1/1     Running   0          59s
+amrutagosavi76a@ip-172-31-21-114:~$ 
+
+
+###########replica set
+https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+When to use a ReplicaSet
+A ReplicaSet ensures that a specified number of pod replicas are running at any given time. However, a Deployment is a higher-level concept that manages ReplicaSets and provides declarative updates to Pods along with a lot of other useful features. Therefore, we recommend using Deployments instead of directly using ReplicaSets, unless you require custom update orchestration or don't require updates at all.
+
+This actually means that you may never need to manipulate ReplicaSet objects: use a Deployment instead, and define your application in the spec section.
+
+Example
+controllers/frontend.yaml Copy controllers/frontend.yaml to clipboard
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  # modify replicas according to your case
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: gcr.io/google_samples/gb-frontend:v3
+Saving this manifest into frontend.yaml and submitting it to a Kubernetes cluster will create the defined ReplicaSet and the Pods that it manages.
+
+kubectl apply -f https://kubernetes.io/examples/controllers/frontend.yaml
+You can then get the current ReplicaSets deployed:
+
+kubectl get rs
+And see the frontend one you created:
+
+NAME       DESIRED   CURRENT   READY   AGE
+frontend   3         3         3       6s
+You can also check on the state of the ReplicaSet:
+
+kubectl describe rs/frontend
+And you will see output similar to:
+
+Name:         frontend
+Namespace:    default
+Selector:     tier=frontend
+Labels:       app=guestbook
+              tier=frontend
+Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                {"apiVersion":"apps/v1","kind":"ReplicaSet","metadata":{"annotations":{},"labels":{"app":"guestbook","tier":"frontend"},"name":"frontend",...
+Replicas:     3 current / 3 desired
+Pods Status:  3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  tier=frontend
+  Containers:
+   php-redis:
+    Image:        gcr.io/google_samples/gb-frontend:v3
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Events:
+  Type    Reason            Age   From                   Message
+  ----    ------            ----  ----                   -------
+  Normal  SuccessfulCreate  117s  replicaset-controller  Created pod: frontend-wtsmm
+  Normal  SuccessfulCreate  116s  replicaset-controller  Created pod: frontend-b2zdv
+  Normal  SuccessfulCreate  116s  replicaset-controller  Created pod: frontend-vcmts
+And lastly you can check for the Pods brought up:
+
+kubectl get pods
+You should see Pod information similar to:
+
+NAME             READY   STATUS    RESTARTS   AGE
+frontend-b2zdv   1/1     Running   0          6m36s
+frontend-vcmts   1/1     Running   0          6m36s
+frontend-wtsmm   1/1     Running   0          6m36s
+You can also verify that the owner reference of these pods is set to the frontend ReplicaSet. To do this, get the yaml of one of the Pods running:
+
+kubectl get pods frontend-b2zdv -o yaml
+The output will look similar to this, with the frontend ReplicaSet's info set in the metadata's ownerReferences field:
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2020-02-12T07:06:16Z"
+  generateName: frontend-
+  labels:
+    tier: frontend
+  name: frontend-b2zdv
+  namespace: default
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: frontend
+    uid: f391f6db-bb9b-4c09-ae74-6a1f77f3d5cf
+...
+
+#Scale to 5
+kubectl scale rs frontend --replicas=5
+
+
+#deployment
+https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+
+#service
+https://kubernetes.io/docs/concepts/services-networking/service/
+
+
+########Access minikube VM using ssh:(Optional)
+ubuntu@ip-172-31-84-235:~$ minikube ssh
+
+
+To stop a running local kubernetes cluster, run:
+
+$ minikube stop
+To delete a local kubernetes cluster, use:
+
+$ minikube delete
+
+###Enable Kubernetes Dashboard(Ignore this step if you don't have vm with 8gb ram)(optional)
+#Kubernete ships with a web dashboard which allows you to manage your cluster without interacting with a command line. The dashboard addon is installed and enabled by default on minikube.
+
+$ minikube addons list
+
+$ minikube addons enable <module>
+
+$ minikube addons enable portainer
+
+ubuntu@ip-172-31-84-235:~$ minikube addons enable portainer
+! portainer is a 3rd party addon and is not maintained or verified by minikube maintainers, enable at your own risk.
+! portainer does not currently have an associated maintainer.
+  - Using image docker.io/portainer/portainer-ce:2.15.1
+* The 'portainer' addon is enabled
+ubuntu@ip-172-31-84-235:~$
+
+$ minikube dashboard
+
+$ minikube dashboard --url
+
+End of Minikube installation
+
+###########################################################################################
+install kubedm,kubectl(not required for worker node),kubelet
+
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+
+kubelet --version
+kubeadm version
+kubectl version --client
+
+#fix the docker issue
+sudo nano /etc/docker/daemon.json
+
+{
+  "exec-opts": ["native.cgroupdriver=systemd"]
+}
+
+sudo systemctl restart docker
+
+#containerd 
+sudo systemctl status containerd
+sudo nano /etc/containerd/config.toml
+#disabled_plugins = ["cri"]
+sudo systemctl restart containerd
+
+#if required you can uprade the kubernetes version
+sudo apt-get upgrade kubelet kubeadm kubectl
+++++++++++++++++++++++++++++++++++++++++++
+#initialize the k8's cluster
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+
+#partial output of the above command
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 172.31.21.114:6443 --token k4mulx.fap2kvzlr4734fjd \
+	--discovery-token-ca-cert-hash sha256:39e7ccb8bdd08b66fae8bd45c3f622c6900712cef46daf0e5ca7e0f64d4ae082
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
++++++++++++++++++
+#if you need to reset the cluster
+sudo kubeadm reset
++++++++++++++++++
+
+#Start using kubectl command
+kubectl get nodes
+
+#output
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl get nodes
+NAME               STATUS     ROLES                  AGE     VERSION
+ip-172-31-21-114   NotReady   control-plane,master   6m49s   v1.23.2
+amrutagosavi76a@ip-172-31-21-114:~$ 
+
+#Install network componet 
+#canal
+#flannel
+#calico
+
+#Get the file from github and use the to install k8s network, we are going to use flannel
+https://github.com/flannel-io/flannel/blob/master/Documentation/kube-flannel.yml
+
+#Creat a file kube-flannel.yml
+nano kube-flannel.yml
+
+copy the content and paste the same
+
+#Now apply the kube-flannel.yml using kubectl command
+kubectl apply -f kube-flannel.yml
+
+############output########
+mrutagosavi76a@ip-172-31-21-114:~$ kubectl apply -f kube-flannel.yml
+namespace/kube-flannel created
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+serviceaccount/flannel created
+configmap/kube-flannel-cfg created
+daemonset.apps/kube-flannel-ds created
+amrutagosavi76a@ip-172-31-21-114:~$ 
+############################
+#check the status of the node again now it should be ready
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl get nodes
+NAME               STATUS   ROLES                  AGE   VERSION
+ip-172-31-21-114   Ready    control-plane,master   14m   v1.23.2
+amrutagosavi76a@ip-172-31-21-114:~$
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#tocheck the version
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl explain pods
+KIND:     Pod
+VERSION:  v1
+
+#Now I am going to create my pod
+nano sample.yml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-container
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: nginx
+    image: nginx:1.10-alpine
+	ports:
+	- containerPort: 80
+  - name: alpine
+    image: alpine:3.5
+	command: ["watch","wget","-qO-","localhost"]
+
+#Now I am going to create a pods with above sample.yml
+
+kubectl create -f sample.yml
+or 
+kubectl apply -f sample.yml
+
+###############output
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl apply -f sample.yml
+pod/multi-container created
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl get pods
+NAME              READY   STATUS    RESTARTS   AGE
+multi-container   0/2     Pending   0          12s
+amrutagosavi76a@ip-172-31-21-114:~$ 
+
+#I am seeing my pod is pending state from long, how should i get the actual logs on the issue
+kubectl describe pods <podname>
+################output
+Events:
+  Type     Reason            Age                 From               Message
+  ----     ------            ----                ----               -------
+  Warning  FailedScheduling  55s (x3 over 3m5s)  default-scheduler  0/1 nodes are available: 1 node(s) had taint {node-role.kubernetes.io/master: }, that the pod didn't tolerate.
+
+
+kubectl describe node <nodename>
+####output
+Taints:             node-role.kubernetes.io/master:NoSchedule
+
+#####Remove the taint
+kubectl taint node <nodename> node-role.kubernetes.io/master:NoSchedule-
+kubectl taint node ip-172-31-21-114 node-role.kubernetes.io/master:NoSchedule-
+
+###output
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl taint node ip-172-31-21-114 node-role.kubernetes.io/master:NoSchedule-
+node/ip-172-31-21-114 untainted
+amrutagosavi76a@ip-172-31-21-114:~$ 
+
+####If you want to add the taint again(not required just for learning purpose)++++++++++++++++++++++++
+kubectl taint node <nodename> node-role.kubernetes.io/master:NoSchedule
+
+#now get the pods again you should see those are in running state
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl get pods
+NAME              READY   STATUS    RESTARTS   AGE
+multi-container   2/2     Running   0          12m
+amrutagosavi76a@ip-172-31-21-114:~$ 
++++++++++++++++++++++++++++++++++++++++++++++
+#create a single container pod
+kubectl run tomcat --image=tomcat:8.0
+#output
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl run tomcat --image=tomcat:8.0
+pod/tomcat created
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl get pods
+NAME              READY   STATUS    RESTARTS   AGE
+multi-container   2/2     Running   0          17m
+tomcat            1/1     Running   0          59s
+amrutagosavi76a@ip-172-31-21-114:~$ 

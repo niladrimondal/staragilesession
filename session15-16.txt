@@ -1,5 +1,4 @@
 #create 3 ec2 amazon linux vm  , 1 Controller node and 2 Worker Nodes and install ansible
-#create 3 ec2 amazon linux vm  , 1 Controller node and 2 Worker Nodes and install ansible
 #connect to the servers
 #switch to root
 #update serverpackages
@@ -39,11 +38,12 @@ sudo apt-get install ansible
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-#create a group add the private ip of the nodes run in master only
+#create a group add the private ip of the nodes run in controller only
 vi /etc/ansible/hosts
 
 [demo]
 <privateip node1>
+[sg]
 <privateip node2>
 
 :wq to save
@@ -63,7 +63,7 @@ Remove # from sudo su  or sudo_user = root
 
 esc :wq
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#create user in master and nodes
+#create user in controller and nodes
 adduser ansible
 #set password
 passwd ansible
@@ -116,7 +116,7 @@ service sshd restart
 ssh <node private ip>
 create file it will show
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# create a ssh key at master and copy the same to nodes to do passwordless authentication
+# create a ssh key at controller and copy the same to nodes to do passwordless authentication
 
 #Generate the Key in the master node
 #generate without passphrase

@@ -1,0 +1,102 @@
+#https://medium.com/devops-dudes/install-prometheus-on-ubuntu-18-04-a51602c6256b
+
+Installation follow below link
+
+#https://jhooq.com/prometheous-grafan-setup/
+#install Prometheus
+mkdir prometheus
+cd prometheus
+wget https://github.com/prometheus/prometheus/releases/download/v2.37.6/prometheus-2.37.6.linux-amd64.tar.gz
+tar xvfz prometheus-2.37.6.linux-amd64.tar.gz
+cd prometheus-2.37.6.linux-amd64
+./prometheus 
+
+#prometheus will be accessible over port 9090
+# we are going to exit the prometheus
+#we will rerun prometheus with another yaml file with different settings once node exporter gets installed
+#if you forget to stop the prometheus using ctrl+c then later you can kill the process and rerun with new yaml file
+ps -ef | grep prometheus
+kill -9 <processID>
+
+#Now you can rerun with the yaml file exporter.yaml
+./prometheus --config.file=exporter.yaml
+
++++++++++++++++++++++++++++++++++
+#How to create and Install Node exporter
+wget https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz
+
+tar xvfz node_exporter-1.5.0.linux-amd64.tar.gz
+
+cd node_exporter-1.5.0.linux-amd64
+./node_exporter
+
+#go back to the prometheus folder and create the exporter.yaml file and rerun the prometheus with the same file
+#below is the content of your exporter.yaml file
+global:
+   scrape_interval: 15s
+
+scrape_configs:
+   - job_name: node
+     static_configs:
+        - targets: ['localhost:9100']
+
+
++++++++++++++++++++++++++++++++++
+#install Grafana
+#Update the package info -
+sudo apt-get install -y apt-transport-https
+sudo apt-get install -y software-properties-common wget
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+
+
+#Add stable repository of Grafana -
+echo "deb https://packages.grafana.com/enterprise/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+
+#Update repository and Install Grafana
+sudo apt-get update
+sudo apt-get install grafana-enterprise
+
+#Start the Grafana Server -
+### NOT starting on installation, please execute the following statements to config   ure grafana to start automatically using systemd
+ sudo /bin/systemctl daemon-reload
+ sudo /bin/systemctl enable grafana-server
+### You can start grafana-server by executing
+ sudo /bin/systemctl start grafana-server
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Install with Docker
+https://www.linkedin.com/pulse/running-grafana-prometheus-docker-stephen-townshend/
+
+docker network create grafana-prometheus
+
+docker network ls
+
+#create a prometheus.yml and use below content
+
+global:
+  scrape_interval: 30s 
+
+
+scrape_configs:
+  # Prometheus itself
+  # This uses the static method to get metrics endpoints
+  - job_name: "prometheus"
+    honor_labels: true
+    static_configs:
+      - targets: ["prometheus:9090"] 
+ 
+ 
+#Pull the prometheus image
+docker pull prom/prometheus:latest
+
+#Run the prometheus cntainer
+docker run --rm --name my-prometheus --network grafana-prometheus --network-alias prometheus --publish 9090:9090 --volume ./prometheus.yml:/etc/prometheus/prometheus.yml --detach prom/prometheus
+
+#Install Grafanna
+docker pull grafana/grafana-oss:latest
+
+docker run --rm --name grafana --network grafana-prometheus --network-alias grafana --publish 3000:3000 --detach grafana/grafana-oss:latest
+
+
+#install with k8s
+https://devopscube.com/setup-prometheus-monitoring-on-kubernetes/

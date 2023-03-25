@@ -1,0 +1,26 @@
+1. Write the microservice application and junit testcases(method)
+2. Github account and repo to version control your source code. branch Master
+3. Setup jenkins server aws ec2 instance and configure.(ubuntu)
+   1. java
+   2. git 
+   3. maven
+   4. jenkins
+   5. docker
+   6. ansible
+   7. selenium
+   8. monitoring tool
+4.steps of jenkins pipeline
+  1. Code checkout
+  2. clean compile test package
+  3. Containerize the application
+  4. Configure and deploy to test server using ansible
+  5. Configure test application and write selenium test cases
+  6. Automation test using selenium
+  7. Generate the test reports
+  8. Deploy to the production server.
+  
+  //selenium Testing 
+  1. Download the drivers based on the chrome version
+  2. import the required library pom.xml
+  3. Write the selenium test application suit
+  4. run the application

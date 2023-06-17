@@ -112,14 +112,79 @@ docker build -t niladringinx:1.0 .
 
 #docker run
 docker run -dP niladringinx:1.0
+++++++++++++++++++++++++++++++
+++++++++++++++++++++++
+#Volume mount in you container from host filesystem
+https://docs.docker.com/storage/
+Choose the right type of mount:
+1. Bind Mount
+2. Volume
+3. tmpfs mount
+
+Volume:
+Volumes are stored in a part of the host filesystem which is managed by Docker (/var/lib/docker/volumes/ on Linux).
+Non-Docker processes should not modify this part of the filesystem. Volumes are the best way to persist data in Docker.
+
+Bind Mount:
+Bind mounts may be stored anywhere on the host system. They may even be important system files or directories. 
+Non-Docker processes on the Docker host or a Docker container can modify them at any time.
+
+tmpfs mount:
+tmpfs mounts are stored in the host system’s memory only, and are never written to the host system’s filesystem.
+
+#Bind Mount Example
+root@ip-172-31-12-78:~/dockermount# pwd
+/root/dockermount
+root@ip-172-31-12-78:~/dockermount# echo "Niladri's Configuration form host file system" > index.html
+root@ip-172-31-12-78:~/dockermount# cat index.html
+Niladri's Configuration form host file system
+root@ip-172-31-12-78:~/dockermount# echo "Niladri's Configuration form host file additional page" > niladri.html
+root@ip-172-31-12-78:~/dockermount# ls
+index.html  niladri.html
+root@ip-172-31-12-78:~/dockermount#
+
+#create a conatainer with the mount volume
+docker run -dP -v /root/dockermount:/usr/share/nginx/html nginx
+
+
+#Docker Volume
+docker volume ls
+docker volume create my-vol
+docker inspect my-vol
+docker run -itd -v my-vol:/datasg ubuntu
+Outpu: 
+root@ip-172-31-82-99:~# docker inspect my-vol
+[
+    {
+        "CreatedAt": "2023-06-17T10:11:27Z",
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/var/lib/docker/volumes/my-vol/_data",
+        "Name": "my-vol",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+
 ++++++++++++++++++++++++++++
+Compose is a tool for defining and running multi-container Docker applications. 
+With Compose, you use a YAML file to configure your application’s services. 
+Then, with a single command, you create and start all the services from your configuration.
+
+Compose works in all environments: production, staging, development, testing, as well as CI workflows.
+
 Docker compose:
 apt update
 apt install docker.io
 apt install docker-compose
 
 docker-compose build
+
 docker-compose up
+
+docker-compose up -d
+
+docker-compose down
 
 ++++++++++++++++++++++++++++
 vi docker-compose.yml
@@ -136,13 +201,46 @@ services:
     expose:
       - "6379"
 ++++++++++++++++++++++++++++++++
+#Wordpress
+vi docker-compose.yml
+
+version: '3'
+services:
+  db:
+    container_name: wp_mysql
+	image: mysql:5.7
+	volumes:
+	  - "$PWD/data:/var/lib/mysql"
+	environment: 
+	  MYSQL_ROOT_PASSWORD: 123456
+	  MYSQL_DATABASE: wordpress
+	  MYSQL_USER: wordpress
+	  MYSQL_PASSWORD: wordpress
+	ports:
+	  - "3306:3306"
+  wp:
+    container_name: wp_web
+	image: wordpress
+	volumes:
+	  - "$PWD/html:/var/www/html"
+	depends_on:
+	  - db
+	ports:
+	  - "9091:80"
+	environment:
+	  WORDPRESS_DB_HOST: db:3306
+	  WORDPRESS_DB_USER: wordpress
+	  WORDPRESS_DB_PASSWORD: wordpress
+++++++++++++++++++++++++++++++++
 sudo docker pull ubuntu
 
 ++++++++++++++++++++++++
 docker tag 58db3edaf2be niladrimondaldcr/niladriubuntu:1.0
 
 authenticate 
-docker login user name password
+docker login 
+username: 
+password:
 
 docker push niladrimondaldcr/niladriubuntu:1.0
 
@@ -172,3 +270,51 @@ browse: localhost:5000/v2/_catalog
 cleanup:
 sudo docker rm -f $(docker ps -aq) 
 sudo docker rmi $(docker images -q)
+
++++++++++++++++++++++++++++
+# addressbook Dockerfile
+clone the addressbook repository
+mvn clean install to generate the target file and then build the docker image
+
+FROM tomcat:9.0
+COPY target/addressbook-2.0.war /usr/local/tomcat/webapps/
+CMD ["catalina.sh", "run"]
+EXPOSE 8080
+
+docker run -dt -P 8082:8080 <image>
+
+application will be accessible on http://<ip>:8082/addressbook-2.0
+++++++++++++++++++++++++++++++
+https://www.simplilearn.com/tutorials/docker-tutorial/docker-swarm#what_is_docker_swarm
+
+https://k21academy.com/docker-kubernetes/docker-swarm/
+
+https://docs.docker.com/engine/swarm/swarm-tutorial/deploy-service/
+
+Docker Swarm is an orchestration management tool that runs on Docker applications. 
+It helps end-users in creating and deploying a cluster of Docker nodes.
+
+###Run on Swarm Manager
+sudo apt-get update
+sudo apt install docker.io
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo docker --version
+sudo docker swarm init --advertise-addr 172.31.61.137
+sudo docker node ls
+sudo docker service create --name HelloWorld alpine ping docker.com
+sudo docker service ls
+sudo docker ps
+
+
+####Run On worker node
+docker swarm join --token SWMTKN-1-5c6dutiwh13zldeezmowzp06u2nbf20rdjjnldmz1lemxkzfvr-7qdk3sa3ofl93flsw4tvzh8ir 172.31.61.137:2377
+
+
+#####Describe the deployed service
+service inspect --pretty <service id>
+docker service inspect <service name>
+docker service ps <serviceid>
+docker service scale HelloWorld=5
+docker service ls
+docker service ps HelloWorld

@@ -131,25 +131,7 @@ docker exec -it  cff034d88691 /bin/bash
 echo "Niladri Nginx for Random Port" > /usr/share/nginx/html/index.html
 
 
-++++++++++++++++++++++
-#Volume mount in you container from host filesystem
-root@ip-172-31-12-78:~# mkdir dockermount
-root@ip-172-31-12-78:~# pwd
-/root
-root@ip-172-31-12-78:~# cd dockermount/
-root@ip-172-31-12-78:~/dockermount# pwd
-/root/dockermount
-root@ip-172-31-12-78:~/dockermount# echo "Niladri's Configuration form host file system" > index.html
-root@ip-172-31-12-78:~/dockermount# cat index.html
-Niladri's Configuration form host file system
-root@ip-172-31-12-78:~/dockermount# echo "Niladri's Configuration form host file addition page" > niladri.html
-root@ip-172-31-12-78:~/dockermount# ls
-index.html  niladri.html
-root@ip-172-31-12-78:~/dockermount#
 
-
-#create a conatainer with the mount volume
-docker run -dP -v /root/dockermount:/usr/share/nginx/html nginx
 
 #docker logs <containerid>
 

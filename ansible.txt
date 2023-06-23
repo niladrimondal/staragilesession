@@ -1,0 +1,85 @@
+#Install Ansible on Ubuntu 
+https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html
+
+$ sudo apt update
+$ sudo apt install software-properties-common
+$ sudo add-apt-repository --yes --update ppa:ansible/ansible
+$ sudo apt install ansible
+
++++++++++++++++++++++++++++++++
+cd /etc/ansible
+cat /etc/ansible
+# Since Ansible 2.12 (core):
+# To generate an example config file (a "disabled" one with all default settings, commented out):
+#               $ ansible-config init --disabled > ansible.cfg
+#
+# Also you can now have a more complete file by including existing plugins:
+# ansible-config init --disabled -t all > ansible.cfg
+
+# For previous versions of Ansible you can check for examples in the 'stable' branches of each version
+# Note that this file was always incomplete  and lagging changes to configuration settings
+
+# for example, for 2.9: https://github.com/ansible/ansible/blob/stable-2.9/examples/ansible.cfg
+
++++++++++++++++++++++++++++++++++++++++
+copy the key to controller node and use the same key to create the host nodes
+scp -i ank.pem ank.pem ubuntu@3.94.201.190:/home/ubuntu 
+
+#Set the host node in anible controller node /etc/ansible/hosts with private key
+[webserver]
+172.31.84.51 ansible_ssh_private_key_file=/home/ubuntu/ank.pem ansible_user=ubuntu
+chmod 600 ank.pem
+Important key should have 600 
+chmod 600 ank.pem
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#check the setup
+ansible -m setup localhost
+
+ansible -m ping webserver
+
+
+ansible -m ping localhost
+
+#create user
+ansible -b -m user -a 'name=niladri' webserver
+#ask for password
+ansible -b -K -m user -a 'name=niladri' webserver
+
+ansible webserver -a"apt install httpd -y"
+
+ansible -b webserver -a"apt update -y"
+
+ansible webserver -a"touch niladri"
+
+ansible -b  webserver -a"apt install docker.io -y"
+
+ansible -m service -a 'name=ssh state=started' webserver
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ubuntu@ip-172-31-93-211:~$ cat new.yaml
+- hosts: webserver
+  user: ubuntu
+  become: yes
+  connection: ssh
+  tasks:
+    - name: install docker on nodes
+      action: apt name=docker.io state=absent
+    - name: install maven
+      action: apt name=maven state=present
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+- hosts: webserver #your host
+  user: ansible #user
+  become: yes #if you want to use root priviledge to perform some actions
+  connection: ssh #connect type
+  tasks:
+    - name: install httpd
+      action: apt name=apache2 state=present
+      notify: restart httpd
+    - name: copy index.html
+      ansible.builtin.copy:
+           src: /home/ubuntu/index.html
+           dest: /var/www/html/
+  handlers:
+    - name: restart httpd
+      action: service name=apache2 state=restarted

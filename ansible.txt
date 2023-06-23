@@ -83,3 +83,23 @@ ubuntu@ip-172-31-93-211:~$ cat new.yaml
   handlers:
     - name: restart httpd
       action: service name=apache2 state=restarted
+	  
++++++++++++++++++++++++++++++++++++++++++++++
+- hosts: webserver
+  become: yes
+  vars:
+    users:
+    - username: niladri
+    - username: pampa
+    - username: satvik
+  tasks:
+  - name: create group for users
+    group:
+      name: family
+      state: present
+  - name: create user "{{ item.username }}"
+    user:
+      name: "{{ item.username }}"
+      create_home: yes
+      groups: family
+    with_items: "{{ users }}"

@@ -1,0 +1,34 @@
+https://minikube.sigs.k8s.io/docs/start/
+minikube kubectl -- get pods -A
+   20  alias kubectl="minikube kubectl --"
+   21  kubectl get pods
+   24  kubectl run nginx --image="nginx"
+   25  kubectl get pods
+   26  kubectl get nodes
+   27  kubectl explain pods
+   28  kubectl get pods
+   31  minikube kubectl get pods
+   32  minikube kubectl explain pods
+   
+   37  minikube kubectl create -f pod.yaml
+   38  minikube kubectl create -- -f pod.yaml
+   39  minikube kubectl delete pods nginx
+   40  minikube kubectl create -- -f pod.yaml
+   41  minikube kubectl describe pods nginx
+   42  clearf
+   43  clear
+   44  vi sample.yml
+   45  clear
+   46  minikube kubectl create -- -f sample.yml
+   47  vi sample.yml
+   48  minikube kubectl create -- -f sample.yml
+   49  vi sample.yml
+   50  minikube kubectl get pods
+   51  vi pod.yaml
+   52  minikube kubectl apply  -- -f sample.yml
+   53  minikube kubectl apply  -- -f pod.yaml
+   54  clear
+   55  minikube kubectl get pods
+   56  minikube kubectl describe pods nginx
+
+++++++++++++++++++++++++++++++++++++++++++

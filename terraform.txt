@@ -1,14 +1,9 @@
 https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
 
-
-wget -O- https://apt.releases.hashicorp.com/gpg | \
-gpg --dearmor | \
-sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
-
-$ export AWS_ACCESS_KEY_ID=""
-$ export AWS_SECRET_ACCESS_KEY=""
-$ export AWS_REGION="us-west-2"
-$ export AWS_SESSION_TOKEN=""
+export AWS_ACCESS_KEY_ID="ASIAZ6V2SXXVLTXY2XMF"
+export AWS_SECRET_ACCESS_KEY="XYf33J92rrvwhQQFDkQzocGzVxqHV97nWKrpgL30"
+export AWS_REGION="us-east-1"
+export AWS_SESSION_TOKEN="FwoGZXIvYXdzEBAaDCFxQlM9L6fBZ+lfyiK/AUsoeM7OFvRtL8akueyI4/oEtWwleCYCqwraoglArX7JGtjf6ngpBj73C+Ah1WcytZbXzSX0BozEO77QHplImvfE5cyKhktOdLCbHpdB20mePd8zya5gU0Q8877TLAD2JxCDLFQfiy80lwZrYt/LdvMPw+LmwaheLybfygW29GEI2HXZC9NWu59jmlPAq31VRXb5/x3lb2dexV85IuiZKnwXv3tXUAUqUFE0aP5PNflz3rBEl4RI07HhVzOxZruHKMvgpaUGMi2d3iW5AY41FcArgo7k3q6qkSJsRLKAlZW//SMUyNNnpivwGahhQPo4XsLjKus="
 +++++++++++++++++++++++++++++++++++++++
 terraform {
   required_providers {
@@ -29,4 +24,81 @@ resource "aws_s3_bucket" "b" {
     Environment = "Dev"
   }
 }
++++++++++++++++++++++++++++++++++++++++++
+ubuntu@ip-172-31-20-162:~/nil$ terraform state list
+aws_instance.web
 
+
+++++++++++++++++++++++++++++
+cat addressbook.sh
+#!/bin/bash
+apt-get update
+apt-get install docker.io -y
+docker run -itd -p 8080:8080 niladrimondaldcr/addressbook:1.0
++++++++++++++++++++++++++++++
+
+cat main.tf
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
+}
+
+resource "aws_security_group" "sg" {
+  name_prefix = "add-app-server-sg"
+  vpc_id = "vpc-0146bf892a9083055"
+
+  tags = {
+    Name = "sg-app-server"
+  }
+}
+
+resource "aws_security_group_rule" "app_server_ssh" {
+  type = "ingress"
+  from_port = 22
+  to_port = 22
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.sg.id}"
+}
+
+resource "aws_security_group_rule" "app_server_add" {
+  type = "ingress"
+  from_port = 8080
+  to_port = 8080
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.sg.id}"
+}
+
+resource "aws_security_group_rule" "app_server_egress" {
+  type = "egress"
+  from_port = 0
+  to_port = 0
+  protocol = "-1"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.sg.id}"
+}
+
+resource "aws_instance" "web" {
+  ami                    = "ami-053b0d53c279acc90"
+  instance_type          = "t2.medium"
+  key_name               = "txy"
+  tags = {
+    Name = "Add-vm"
+  }
+  vpc_security_group_ids = ["${aws_security_group.sg.id}"]
+  user_data = file("${path.module}/addressbook.sh")
+}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+terraform init
+
+terraform validate
+
+terraform plan
+
+terraform apply

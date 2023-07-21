@@ -61,9 +61,10 @@ maven docker ansible
 
 install docker ansible plugins 
 
-install plugin for publish html report for unit testcases
+#install plugin for publish html report for unit testcases 
+HTML Publisher
 
-install credential binding plugin(if it is not installed)
+#install credential binding plugin(if it is not installed)
 
 #Insall Google chrome:
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -80,6 +81,17 @@ unzip chromedriver_linux64.zip
 
 scp -i ./devopsserver.pem ./selenium-insure-me.jar ubuntu@52.6.45.41:/home/ubuntu/
 
+
+selenium jenkins script
+node {
+    stage ('code checkout'){
+        echo 'Code Checkout'
+        git 'https://github.com/niladrimondal/insure-me.git'
+    }
+    stage ('selenium test'){
+        sh 'java -jar selenium-runnable.jar'
+    }
+}
 
 +++++++++++++++++++++++++++++++++++++++
 project 2
